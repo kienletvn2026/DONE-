@@ -99,12 +99,12 @@ input[type=text]{width:100%;padding:10px 14px;border:0.5px solid var(--color-bor
 
 <div style="padding:1rem 0">
 <div class="tab-bar">
-  <button class="tab active" onclick="switchTab('examiner')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Người chấm</button>
-  <button class="tab" onclick="switchTab('student')"><i class="ti ti-device-mobile" aria-hidden="true"></i> Học viên</button>
+  <button class="tab" onclick="switchTab('examiner')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Người chấm</button>
+  <button class="tab active" onclick="switchTab('student')"><i class="ti ti-device-mobile" aria-hidden="true"></i> Học viên</button>
   <button class="tab" onclick="switchTab('qr')"><i class="ti ti-qrcode" aria-hidden="true"></i> QR Code</button>
 </div>
 
-<div id="panel-examiner" class="panel active">
+<div id="panel-examiner" class="panel">
   <div id="congrats-box"></div>
   <div class="metric-row">
     <div class="metric"><div class="metric-label">Học viên đã nộp</div><div class="metric-val" id="m-total">0</div></div>
@@ -134,7 +134,7 @@ input[type=text]{width:100%;padding:10px 14px;border:0.5px solid var(--color-bor
   </div>
 </div>
 
-<div id="panel-student" class="panel">
+<div id="panel-student" class="panel active">
   <div id="student-welcome">
     <div class="card">
       <div style="font-size:16px;font-weight:500;margin-bottom:8px">Bài kiểm tra đầu vào</div>
@@ -203,7 +203,7 @@ input[type=text]{width:100%;padding:10px 14px;border:0.5px solid var(--color-bor
  * 2) ADMIN_TOKEN phải giống token trong file Code.gs.
  */
 const CONFIG = {
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxfU_8yFrQSMTcLKubG96xkNo59OW-FlJ2vvYg6O8bZCZw5p12GIlebE_P1V2ELltRN/exec",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbweCHEwz1QIyJVhq14eWXcHRkmKmrMEVHbb_cXcanbBCVg4IDDHK6DSu5g_fWDsclNePg/exec",
   ADMIN_TOKEN: "CHANGE_ME_123"
 };
 
@@ -260,7 +260,7 @@ function jsonp(params){
 
     script.onerror = () => {
       cleanup();
-      reject(new Error("Không tải được Apps Script. Kiểm tra link Web App và quyền truy cập."));
+      reject(new Error("Không tải được Apps Script. Hãy mở thử link Apps Script với ?action=list&callback=test để kiểm tra Web App đã deploy đúng Code.gs chưa."));
     };
     script.src = CONFIG.APPS_SCRIPT_URL + (CONFIG.APPS_SCRIPT_URL.includes("?") ? "&" : "?") + query.toString();
     document.body.appendChild(script);
@@ -525,7 +525,14 @@ function renderQR(){
   QRCode.toCanvas(document.getElementById('qr-canvas'),url,{width:220,margin:2},()=>{});
 }
 
-loadAndRender();
+// Không tự tải dữ liệu Người chấm ngay khi mở trang để tránh ứng dụng Preview hỏi quyền mạng liên tục.
+// Dữ liệu sẽ tải khi bấm tab "Người chấm"; học viên vẫn nộp bài bình thường.
+try {
+  renderLeaderboard();
+  renderChart();
+} catch (e) {
+  console.warn(e);
+}
 </script>
 
 
